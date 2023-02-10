@@ -24,18 +24,29 @@ const AddNote = () => {
 
   const handleClick = (e) => {
     e.preventDefault();
+    if (!note.title?.length || !note.description?.length) {
+      toast.error("Title and description must not be empty");
+      return;
+    }
     addNote(note.title, note.description, note.tag);
     setNote({ title: "", description: "", tag: "" });
-    toast.success("Note addedd successfully");
+    toast.success("Note added successfully");
   };
+
   const onChange = (e) => {
     setNote({ ...note, [e.target.name]: e.target.value });
   };
+
   return (
     <div>
       <div className="container my-3">
         <h1>Add a note</h1>
-        <form className="my-3">
+        <form
+          className="m-auto my-3"
+          style={{
+            maxWidth: "600px",
+          }}
+        >
           <div className="mb-3">
             <label htmlFor="title" className="form-label">
               Title
@@ -56,7 +67,7 @@ const AddNote = () => {
             <label htmlFor="description" className="form-label">
               Description
             </label>
-            <input
+            <textarea
               type="text"
               minLength={5}
               required
@@ -84,7 +95,6 @@ const AddNote = () => {
           </div>
 
           <button
-            disabled={note.title.length < 5 || note.description.length < 5}
             type="submit"
             className="btn btn-primary"
             onClick={handleClick}
