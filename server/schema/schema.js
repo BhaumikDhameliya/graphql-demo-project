@@ -6,6 +6,8 @@ const {
   GraphQLSchema,
   GraphQLList,
   GraphQLNonNull,
+  GraphQLInt,
+  GraphQLBoolean,
 } = require("graphql");
 
 // Note Type
@@ -19,13 +21,45 @@ const NoteType = new GraphQLObjectType({
   }),
 });
 
+// const PageInfoType = new GraphQLObjectType({
+//   name: "PageInfo",
+//   fields: () => ({
+//     currentPage: { type: GraphQLInt },
+//     perPage: { type: GraphQLInt },
+//     itemCount: { type: GraphQLInt },
+//     hasPreviousPage: { type: GraphQLInt },
+//     hasNextPage: { type: GraphQLBoolean },
+//   }),
+// });
+
 const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   fields: {
     notes: {
-      type: new GraphQLList(NoteType),
-      resolve(parent, args) {
-        return Note.find();
+      type: new GraphQLObjectType({
+        name: "Notes",
+        fields: () => ({
+          data: { type: new GraphQLList(NoteType) },
+          hasMore: { type: GraphQLBoolean },
+        }),
+      }),
+      // type: new GraphQLList(NoteType),
+      args: {
+        limit: { type: GraphQLInt },
+        skip: { type: GraphQLInt },
+      },
+      async resolve(parent, args) {
+        const { limit, skip } = args;
+        const data = await Note.find()
+          .limit(parseInt(limit))
+          .skip(parseInt(skip));
+        const totalItems = await Note.count();
+        const lastItemIndex = skip + limit;
+        const hasMore = lastItemIndex < totalItems;
+        return {
+          data,
+          hasMore,
+        };
       },
     },
     note: {

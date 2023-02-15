@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import AddNote from "./AddNote";
 import Noteitem from "./Noteitem";
 import { toast } from "react-toastify";
@@ -7,8 +7,17 @@ import { useMutation, useQuery } from "@apollo/client";
 import Spinner from "./Spinner";
 import { UPDATE_NOTE } from "../mutations/noteMutations";
 
+const limit = 8;
+
 function Notes() {
-  const { loading, error, data } = useQuery(GET_NOTES);
+  const [skip, setSkip] = useState(0);
+
+  const { loading, error, data } = useQuery(GET_NOTES, {
+    variables: {
+      limit,
+      skip,
+    },
+  });
 
   const ref = useRef(null);
   const refClose = useRef(null);
@@ -56,7 +65,14 @@ function Notes() {
     setNote({ ...note, [e.target.name]: e.target.value });
   };
 
-  if (loading) return <Spinner />;
+  const handlePrev = () => {
+    setSkip((prevSkip) => prevSkip - limit);
+  };
+
+  const handleNext = () => {
+    setSkip((prevSkip) => prevSkip + limit);
+  };
+
   if (error) return <p>Something Went Wrong</p>;
 
   return (
@@ -164,16 +180,34 @@ function Notes() {
         </div>
       </div>
 
-      <div className="row my-3">
+      <div className="row my-3 justify-content-center">
         <h2>Your notes</h2>
-        <div className="container">
-          {data?.notes.length === 0 && "No notes to display"}
-        </div>
-        {data?.notes.map((note) => {
-          return (
-            <Noteitem key={note.id} updateNote={handleUpdateNote} note={note} />
-          );
-        })}
+        {loading ? (
+          <Spinner />
+        ) : (
+          <>
+            <div className="container">
+              {data?.notes?.data.length === 0 && "No notes to display"}
+            </div>
+            {data?.notes?.data.map((note) => {
+              return (
+                <Noteitem
+                  key={note.id}
+                  updateNote={handleUpdateNote}
+                  note={note}
+                />
+              );
+            })}
+          </>
+        )}
+      </div>
+      <div className="d-flex justify-content-between">
+        <button disabled={skip === 0} onClick={handlePrev}>
+          prev
+        </button>
+        <button disabled={!data?.notes?.hasMore} onClick={handleNext}>
+          next
+        </button>
       </div>
     </>
   );
