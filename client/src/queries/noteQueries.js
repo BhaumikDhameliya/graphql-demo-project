@@ -3,14 +3,12 @@ import { gql } from "@apollo/client";
 const GET_NOTES = gql`
   query getNotes($limit: Int, $skip: Int) {
     notes(limit: $limit, skip: $skip) {
-      data {
-        id
-        title
-        description
-        tag
-      }
-      hasMore
+      id
+      title
+      description
+      tag
     }
+    totalNotesCount
   }
 `;
 

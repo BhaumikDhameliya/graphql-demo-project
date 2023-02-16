@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AddNote from "./AddNote";
 import Noteitem from "./Noteitem";
 import { toast } from "react-toastify";
@@ -6,11 +6,14 @@ import { GET_NOTE, GET_NOTES } from "../queries/noteQueries";
 import { useMutation, useQuery } from "@apollo/client";
 import Spinner from "./Spinner";
 import { UPDATE_NOTE } from "../mutations/noteMutations";
+import { Pagination } from "react-bootstrap";
 
-const limit = 8;
+const limit = 6;
 
 function Notes() {
   const [skip, setSkip] = useState(0);
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
 
   const { loading, error, data } = useQuery(GET_NOTES, {
     variables: {
@@ -66,14 +69,27 @@ function Notes() {
   };
 
   const handlePrev = () => {
+    setPage((page) => page - 1);
     setSkip((prevSkip) => prevSkip - limit);
   };
 
   const handleNext = () => {
+    setPage((page) => page + 1);
     setSkip((prevSkip) => prevSkip + limit);
   };
 
+  const handleSetPage = (page) => {
+    setPage(page);
+    setSkip((page - 1) * limit);
+  };
+
   if (error) return <p>Something Went Wrong</p>;
+
+  useEffect(() => {
+    if (data?.totalNotesCount) {
+      setLastPage(Math.ceil(data.totalNotesCount / limit));
+    }
+  }, [data?.totalNotesCount]);
 
   return (
     <>
@@ -187,9 +203,9 @@ function Notes() {
         ) : (
           <>
             <div className="container">
-              {data?.notes?.data.length === 0 && "No notes to display"}
+              {data?.notes?.length === 0 && "No notes to display"}
             </div>
-            {data?.notes?.data.map((note) => {
+            {data?.notes?.map((note) => {
               return (
                 <Noteitem
                   key={note.id}
@@ -201,13 +217,76 @@ function Notes() {
           </>
         )}
       </div>
-      <div className="d-flex justify-content-between">
-        <button disabled={skip === 0} onClick={handlePrev}>
-          prev
-        </button>
-        <button disabled={!data?.notes?.hasMore} onClick={handleNext}>
-          next
-        </button>
+      <div className="d-flex align-items-center justify-content-center">
+        <Pagination>
+          <Pagination.Prev onClick={handlePrev} disabled={page === 1} />
+          {page - 3 > 0 && (
+            <>
+              <Pagination.Item
+                onClick={() => {
+                  handleSetPage(1);
+                }}
+              >
+                {1}
+              </Pagination.Item>
+              <Pagination.Ellipsis
+                onClick={() => {
+                  handleSetPage(page - 3);
+                }}
+              />
+            </>
+          )}
+          {page - 2 > 0 && (
+            <Pagination.Item
+              onClick={() => {
+                handleSetPage(page - 2);
+              }}
+            >
+              {page - 2}
+            </Pagination.Item>
+          )}
+          {page - 1 > 0 && (
+            <Pagination.Item
+              onClick={() => {
+                handleSetPage(page - 1);
+              }}
+            >
+              {page - 1}
+            </Pagination.Item>
+          )}
+          <Pagination.Item active>{page}</Pagination.Item>
+          {page + 1 <= lastPage && (
+            <Pagination.Item
+              onClick={() => {
+                handleSetPage(page + 1);
+              }}
+            >
+              {page + 1}
+            </Pagination.Item>
+          )}
+          {page + 2 <= lastPage && (
+            <Pagination.Item
+              onClick={() => {
+                handleSetPage(page + 2);
+              }}
+            >
+              {page + 2}
+            </Pagination.Item>
+          )}
+          {page + 3 <= lastPage && (
+            <>
+              <Pagination.Ellipsis />
+              <Pagination.Item
+                onClick={() => {
+                  handleSetPage(lastPage);
+                }}
+              >
+                {lastPage}
+              </Pagination.Item>
+            </>
+          )}
+          <Pagination.Next onClick={handleNext} disabled={page === lastPage} />
+        </Pagination>
       </div>
     </>
   );

@@ -21,45 +21,21 @@ const NoteType = new GraphQLObjectType({
   }),
 });
 
-// const PageInfoType = new GraphQLObjectType({
-//   name: "PageInfo",
-//   fields: () => ({
-//     currentPage: { type: GraphQLInt },
-//     perPage: { type: GraphQLInt },
-//     itemCount: { type: GraphQLInt },
-//     hasPreviousPage: { type: GraphQLInt },
-//     hasNextPage: { type: GraphQLBoolean },
-//   }),
-// });
-
 const RootQuery = new GraphQLObjectType({
   name: "RootQueryType",
   fields: {
     notes: {
-      type: new GraphQLObjectType({
-        name: "Notes",
-        fields: () => ({
-          data: { type: new GraphQLList(NoteType) },
-          hasMore: { type: GraphQLBoolean },
-        }),
-      }),
-      // type: new GraphQLList(NoteType),
+      type: new GraphQLList(NoteType),
       args: {
         limit: { type: GraphQLInt },
         skip: { type: GraphQLInt },
       },
       async resolve(parent, args) {
         const { limit, skip } = args;
-        const data = await Note.find()
+        const notes = await Note.find()
           .limit(parseInt(limit))
           .skip(parseInt(skip));
-        const totalItems = await Note.count();
-        const lastItemIndex = skip + limit;
-        const hasMore = lastItemIndex < totalItems;
-        return {
-          data,
-          hasMore,
-        };
+        return notes;
       },
     },
     note: {
@@ -67,6 +43,14 @@ const RootQuery = new GraphQLObjectType({
       args: { id: { type: GraphQLID } },
       resolve(parent, args) {
         return Note.findById(args.id);
+      },
+    },
+    totalNotesCount: {
+      type: GraphQLInt,
+      args: {},
+      async resolve(parent, args) {
+        const totalNotesCount = await Note.count();
+        return totalNotesCount;
       },
     },
   },
