@@ -8,7 +8,7 @@ import Spinner from "./Spinner";
 import { UPDATE_NOTE } from "../mutations/noteMutations";
 import { Pagination } from "react-bootstrap";
 
-const limit = 6;
+const limit = 8;
 
 function Notes() {
   const [skip, setSkip] = useState(0);
@@ -59,9 +59,11 @@ function Notes() {
       note.edescription,
       note.etag
     );
-    if (res?.data) {
+    if (res?.data?.updateNote) {
       refClose.current.click();
-      toast.success("Notes updated successfully");
+      toast.success("Note updated successfully");
+    } else {
+      toast.error("Something went wrong");
     }
   };
   const onChange = (e) => {
@@ -93,7 +95,7 @@ function Notes() {
 
   return (
     <>
-      <AddNote />
+      <AddNote {...{ limit, skip }} />
       <button
         type="button"
         className="btn btn-primary d-none"
@@ -211,6 +213,8 @@ function Notes() {
                   key={note.id}
                   updateNote={handleUpdateNote}
                   note={note}
+                  limit={limit}
+                  skip={skip}
                 />
               );
             })}

@@ -9,7 +9,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import { Badge } from "react-bootstrap";
 
 const Noteitem = (props) => {
-  const { note, updateNote } = props;
+  const { note, updateNote, limit, skip } = props;
   const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
@@ -17,13 +17,23 @@ const Noteitem = (props) => {
   const [deleteNote] = useMutation(DELETE_NOTE, {
     variables: { id: note?.id },
     onCompleted: () => navigate("/"),
-    refetchQueries: [{ query: GET_NOTES }],
+    refetchQueries: [
+      {
+        query: GET_NOTES,
+        variables: {
+          limit,
+          skip,
+        },
+      },
+    ],
   });
 
   const handleDeleteNote = async () => {
     const res = await deleteNote();
-    if (res?.data) {
+    if (res?.data?.deleteNote) {
       toast.success("Note deleted successfully");
+    } else {
+      toast.error("Something went wrong");
     }
   };
 
