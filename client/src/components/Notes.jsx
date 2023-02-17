@@ -279,7 +279,11 @@ function Notes() {
           )}
           {page + 3 <= lastPage && (
             <>
-              <Pagination.Ellipsis />
+              <Pagination.Ellipsis
+                onClick={() => {
+                  handleSetPage(page + 3);
+                }}
+              />
               <Pagination.Item
                 onClick={() => {
                   handleSetPage(lastPage);
