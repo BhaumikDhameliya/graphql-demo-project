@@ -7,6 +7,7 @@ import Spinner from "./Spinner";
 import { Button, Pagination } from "react-bootstrap";
 import EditNote from "./EditNote";
 import AddNoteModal from "./AddNoteModal";
+import "./Notes.css";
 
 const limit = 8;
 
@@ -16,11 +17,14 @@ function Notes() {
   const [lastPage, setLastPage] = useState(1);
   const [showEditNote, setShowEditNote] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   const { loading, error, data } = useQuery(GET_NOTES, {
     variables: {
       limit,
       skip,
+      search,
     },
   });
 
@@ -64,6 +68,17 @@ function Notes() {
     }
   }, [data?.totalNotesCount]);
 
+  useEffect(() => {
+    let timerId;
+    timerId = setTimeout(() => {
+      setSearch(searchText);
+    }, 500);
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [searchText]);
+
   return (
     <>
       {/* <AddNote {...{ limit, skip }} /> */}
@@ -73,12 +88,11 @@ function Notes() {
         setShow={setShowAddNote}
         limit={limit}
         skip={skip}
+        search={search}
       />
       <EditNote
         note={note}
         setNote={setNote}
-        limit={limit}
-        skip={skip}
         show={showEditNote}
         setShow={setShowEditNote}
       />
@@ -93,7 +107,16 @@ function Notes() {
               {data?.notes?.length === 0 && "No notes to display"}
             </div>
             <div className="d-flex justify-content-center align-items-center gap-2">
-              <input type="text" />
+              <input
+                className="search-input"
+                type="text"
+                value={searchText}
+                placeholder="Search note..."
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                }}
+                autoFocus
+              />
               <Button onClick={() => setShowAddNote(true)}>Add Note</Button>
             </div>
             {data?.notes?.map((note) => {
@@ -104,6 +127,7 @@ function Notes() {
                   note={note}
                   limit={limit}
                   skip={skip}
+                  search={search}
                 />
               );
             })}

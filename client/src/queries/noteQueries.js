@@ -1,14 +1,14 @@
 import { gql } from "@apollo/client";
 
 const GET_NOTES = gql`
-  query getNotes($limit: Int, $skip: Int) {
-    notes(limit: $limit, skip: $skip) {
+  query getNotes($limit: Int, $skip: Int, $search: String) {
+    notes(limit: $limit, skip: $skip, search: $search) {
       id
       title
       description
       tag
     }
-    totalNotesCount
+    totalNotesCount(search: $search)
   }
 `;
 

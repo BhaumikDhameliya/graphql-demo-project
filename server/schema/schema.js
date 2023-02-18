@@ -29,10 +29,17 @@ const RootQuery = new GraphQLObjectType({
       args: {
         limit: { type: GraphQLInt },
         skip: { type: GraphQLInt },
+        search: { type: GraphQLString },
       },
       async resolve(parent, args) {
-        const { limit, skip } = args;
+        let { limit, skip, search } = args;
+        if (search) skip = 0;
         const notes = await Note.find()
+          .or([
+            { title: new RegExp(search, "i") },
+            { description: new RegExp(search, "i") },
+            { tag: new RegExp(search, "i") },
+          ])
           .limit(parseInt(limit))
           .skip(parseInt(skip));
         return notes;
@@ -47,10 +54,17 @@ const RootQuery = new GraphQLObjectType({
     },
     totalNotesCount: {
       type: GraphQLInt,
-      args: {},
+      args: { search: { type: GraphQLString } },
       async resolve(parent, args) {
-        const totalNotesCount = await Note.count();
-        return totalNotesCount;
+        const { search = "" } = args;
+        const count = await Note.find()
+          .or([
+            { title: new RegExp(search, "i") },
+            { description: new RegExp(search, "i") },
+            { tag: new RegExp(search, "i") },
+          ])
+          .count();
+        return count;
       },
     },
   },

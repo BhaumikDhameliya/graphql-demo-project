@@ -5,7 +5,7 @@ import { useMutation } from "@apollo/client";
 import { ADD_NOTE } from "../mutations/noteMutations";
 import { GET_NOTES } from "../queries/noteQueries";
 
-const AddNoteModal = ({ show, setShow, limit, skip }) => {
+const AddNoteModal = ({ show, setShow, limit, skip, search }) => {
   const [note, setNote] = useState({ title: "", description: "", tag: "" });
 
   const [addNote] = useMutation(ADD_NOTE, {
@@ -20,6 +20,7 @@ const AddNoteModal = ({ show, setShow, limit, skip }) => {
         variables: {
           limit,
           skip,
+          search,
         },
       });
       cache.writeQuery({
@@ -27,6 +28,7 @@ const AddNoteModal = ({ show, setShow, limit, skip }) => {
         variables: {
           limit,
           skip,
+          search,
         },
         data: { ...data, notes: [addNote, ...data.notes.slice(0, 7)] },
       });

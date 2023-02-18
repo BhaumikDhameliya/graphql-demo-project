@@ -9,7 +9,7 @@ import DeleteConfirmationModal from "./DeleteConfirmationModal";
 import { Badge } from "react-bootstrap";
 
 const Noteitem = (props) => {
-  const { note, updateNote, limit, skip } = props;
+  const { note, updateNote, limit, skip, search } = props;
   const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
@@ -23,6 +23,7 @@ const Noteitem = (props) => {
         variables: {
           limit,
           skip,
+          search,
         },
       },
     ],
