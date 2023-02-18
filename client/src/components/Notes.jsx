@@ -8,6 +8,11 @@ import { Button, Pagination } from "react-bootstrap";
 import EditNote from "./EditNote";
 import AddNoteModal from "./AddNoteModal";
 import "./Notes.css";
+import TagFilter from "./TagFilter";
+
+import searchingDataGIF from "../assets/gifs/searching-data.gif";
+import noDataGIF from "../assets/gifs/no-data.gif";
+import somethingWentWrongGIF from "../assets/gifs/something-went-wrong.gif";
 
 const limit = 8;
 
@@ -18,6 +23,8 @@ function Notes() {
   const [showEditNote, setShowEditNote] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
   const [search, setSearch] = useState("");
+  const [tag, setTag] = useState("");
+  const [searchTag, setSearchTag] = useState("");
   const [searchText, setSearchText] = useState("");
 
   const { loading, error, data } = useQuery(GET_NOTES, {
@@ -25,6 +32,7 @@ function Notes() {
       limit,
       skip,
       search,
+      tag,
     },
   });
 
@@ -60,7 +68,8 @@ function Notes() {
     setSkip((page - 1) * limit);
   };
 
-  if (error) return <p>Something Went Wrong</p>;
+  if (error)
+    return <img src={somethingWentWrongGIF} alt="something-went-gif" />;
 
   useEffect(() => {
     if (data?.totalNotesCount) {
@@ -79,6 +88,17 @@ function Notes() {
     };
   }, [searchText]);
 
+  useEffect(() => {
+    let timerId;
+    timerId = setTimeout(() => {
+      setTag(searchTag);
+    }, 500);
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, [searchTag]);
+
   return (
     <>
       {/* <AddNote {...{ limit, skip }} /> */}
@@ -89,6 +109,7 @@ function Notes() {
         limit={limit}
         skip={skip}
         search={search}
+        tag={tag}
       />
       <EditNote
         note={note}
@@ -100,12 +121,9 @@ function Notes() {
       <div className="row my-3 justify-content-center">
         <h2>Your notes</h2>
         {loading ? (
-          <Spinner />
+          <img src={searchingDataGIF} alt="searching-data-gif" />
         ) : (
           <>
-            <div className="container">
-              {data?.notes?.length === 0 && "No notes to display"}
-            </div>
             <div className="d-flex justify-content-center align-items-center gap-2">
               <input
                 className="search-input"
@@ -117,7 +135,18 @@ function Notes() {
                 }}
                 autoFocus
               />
+              <TagFilter
+                tag={tag}
+                setTag={setTag}
+                searchTag={searchTag}
+                setSearchTag={setSearchTag}
+              />
               <Button onClick={() => setShowAddNote(true)}>Add Note</Button>
+            </div>
+            <div className="container">
+              {data?.notes?.length === 0 && (
+                <img src={noDataGIF} alt="no-data-gif" />
+              )}
             </div>
             {data?.notes?.map((note) => {
               return (
@@ -128,87 +157,93 @@ function Notes() {
                   limit={limit}
                   skip={skip}
                   search={search}
+                  tag={tag}
                 />
               );
             })}
           </>
         )}
       </div>
-      <div className="d-flex align-items-center justify-content-center">
-        <Pagination>
-          <Pagination.Prev onClick={handlePrev} disabled={page === 1} />
-          {page - 3 > 0 && (
-            <>
+      {data?.totalNotesCount > 0 && (
+        <div className="d-flex align-items-center justify-content-center">
+          <Pagination>
+            <Pagination.Prev onClick={handlePrev} disabled={page === 1} />
+            {page - 3 > 0 && (
+              <>
+                <Pagination.Item
+                  onClick={() => {
+                    handleSetPage(1);
+                  }}
+                >
+                  {1}
+                </Pagination.Item>
+                <Pagination.Ellipsis
+                  onClick={() => {
+                    handleSetPage(page - 3);
+                  }}
+                />
+              </>
+            )}
+            {page - 2 > 0 && (
               <Pagination.Item
                 onClick={() => {
-                  handleSetPage(1);
+                  handleSetPage(page - 2);
                 }}
               >
-                {1}
+                {page - 2}
               </Pagination.Item>
-              <Pagination.Ellipsis
-                onClick={() => {
-                  handleSetPage(page - 3);
-                }}
-              />
-            </>
-          )}
-          {page - 2 > 0 && (
-            <Pagination.Item
-              onClick={() => {
-                handleSetPage(page - 2);
-              }}
-            >
-              {page - 2}
-            </Pagination.Item>
-          )}
-          {page - 1 > 0 && (
-            <Pagination.Item
-              onClick={() => {
-                handleSetPage(page - 1);
-              }}
-            >
-              {page - 1}
-            </Pagination.Item>
-          )}
-          <Pagination.Item active>{page}</Pagination.Item>
-          {page + 1 <= lastPage && (
-            <Pagination.Item
-              onClick={() => {
-                handleSetPage(page + 1);
-              }}
-            >
-              {page + 1}
-            </Pagination.Item>
-          )}
-          {page + 2 <= lastPage && (
-            <Pagination.Item
-              onClick={() => {
-                handleSetPage(page + 2);
-              }}
-            >
-              {page + 2}
-            </Pagination.Item>
-          )}
-          {page + 3 <= lastPage && (
-            <>
-              <Pagination.Ellipsis
-                onClick={() => {
-                  handleSetPage(page + 3);
-                }}
-              />
+            )}
+            {page - 1 > 0 && (
               <Pagination.Item
                 onClick={() => {
-                  handleSetPage(lastPage);
+                  handleSetPage(page - 1);
                 }}
               >
-                {lastPage}
+                {page - 1}
               </Pagination.Item>
-            </>
-          )}
-          <Pagination.Next onClick={handleNext} disabled={page === lastPage} />
-        </Pagination>
-      </div>
+            )}
+            <Pagination.Item active>{page}</Pagination.Item>
+            {page + 1 <= lastPage && (
+              <Pagination.Item
+                onClick={() => {
+                  handleSetPage(page + 1);
+                }}
+              >
+                {page + 1}
+              </Pagination.Item>
+            )}
+            {page + 2 <= lastPage && (
+              <Pagination.Item
+                onClick={() => {
+                  handleSetPage(page + 2);
+                }}
+              >
+                {page + 2}
+              </Pagination.Item>
+            )}
+            {page + 3 <= lastPage && (
+              <>
+                <Pagination.Ellipsis
+                  onClick={() => {
+                    handleSetPage(page + 3);
+                  }}
+                />
+                <Pagination.Item
+                  onClick={() => {
+                    handleSetPage(lastPage);
+                  }}
+                >
+                  {lastPage}
+                </Pagination.Item>
+              </>
+            )}
+            <Pagination.Next
+              onClick={handleNext}
+              disabled={page === lastPage}
+            />
+          </Pagination>
+        </div>
+      )}
     </>
   );
 }

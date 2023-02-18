@@ -1,0 +1,7 @@
+.tag-filter-input {
+  outline: none;
+  background-color: transparent;
+  border: 0;
+  color: white;
+  max-width: 80px;
+}

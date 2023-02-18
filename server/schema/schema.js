@@ -30,11 +30,12 @@ const RootQuery = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         skip: { type: GraphQLInt },
         search: { type: GraphQLString },
+        tag: { type: GraphQLString },
       },
       async resolve(parent, args) {
-        let { limit, skip, search } = args;
+        let { limit, skip, search, tag } = args;
         if (search) skip = 0;
-        const notes = await Note.find()
+        const notes = await Note.find({ tag: new RegExp(tag, "i") })
           .or([
             { title: new RegExp(search, "i") },
             { description: new RegExp(search, "i") },
@@ -54,10 +55,10 @@ const RootQuery = new GraphQLObjectType({
     },
     totalNotesCount: {
       type: GraphQLInt,
-      args: { search: { type: GraphQLString } },
+      args: { search: { type: GraphQLString }, tag: { type: GraphQLString } },
       async resolve(parent, args) {
-        const { search = "" } = args;
-        const count = await Note.find()
+        const { search = "", tag = "" } = args;
+        const count = await Note.find({ tag: new RegExp(tag, "i") })
           .or([
             { title: new RegExp(search, "i") },
             { description: new RegExp(search, "i") },
@@ -65,6 +66,14 @@ const RootQuery = new GraphQLObjectType({
           ])
           .count();
         return count;
+      },
+    },
+    tags: {
+      type: new GraphQLList(GraphQLString),
+      args: {},
+      async resolve(parent, args) {
+        const tags = await Note.find().distinct("tag");
+        return tags;
       },
     },
   },
